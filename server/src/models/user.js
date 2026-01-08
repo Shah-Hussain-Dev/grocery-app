@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ROLES } from "../utils/roles";
+import { ROLES } from "../utils/roles.js";
 // Base User schema
 const userSchema = new mongoose.Schema({
   name: { type: String },
