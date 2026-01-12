@@ -1,34 +1,23 @@
-import { Product } from "../../models.js";
+import { Product } from "../../models/index.js";
+import { sendSuccess, sendError } from "../../utils/index.js";
 
 export const getAllProducts = async (req, reply) => {
   try {
     const products = await Product.find();
-    return reply.status(200).send({
-      status: true,
-      message: "Products fetched successfully",
-      data: products,
-    });
+    return sendSuccess(reply, 200, "Products fetched successfully", products);
   } catch (error) {
-    return reply
-      .status(500)
-      .send({ status: false, message: "An error occurred", error: error });
+    return sendError(reply, 500, "An error occurred", error);
   }
 };
 
 export const getProductByCategoryId = async (req, reply) => {
   try {
     const { categoryId } = req.params;
-    const products = await Product.find({ category: categoryId }).select("-category").exec();
-    return reply.status(200).send({
-      status: true,
-      message: "Products fetched successfully",
-      data: products
-    })
+    const products = await Product.find({ category: categoryId })
+      .select("-category")
+      .exec();
+    return sendSuccess(reply, 200, "Products fetched successfully", products);
   } catch (error) {
-    reply.status(500).send({
-      status: false,
-      message: "An error occurred",
-      error: error
-    })
+    return sendError(reply, 500, "An error occurred", error);
   }
-}
+};

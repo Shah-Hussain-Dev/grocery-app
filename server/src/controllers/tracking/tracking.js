@@ -1,5 +1,5 @@
-import { Customer } from "../../models/customer/customer.js";
-import { DeliveryPartner } from "../../models/deliveryPartner/deliveryPartner.js";
+import { Customer ,DeliveryPartner} from "../../models/index.js";
+import { sendSuccess, sendError } from "../../utils/index.js";
 
 export const updateUser = async (req, reply) => {
     try {
@@ -8,10 +8,7 @@ export const updateUser = async (req, reply) => {
         let UserModel;
         let user = await Customer.findById(userId) || await DeliveryPartner.findById(userId);
         if (!user) {
-            return reply.status(404).send({
-                status: false,
-                message: "User not found"
-            })
+            return sendError(reply, 404, "User not found");
         }
 
         if (user.role === "Customer") {
@@ -19,22 +16,11 @@ export const updateUser = async (req, reply) => {
         } else if (user.role === "DeliveryPartner") {
             UserModel = DeliveryPartner;
         } else {
-            return reply.status(400).send({
-                status: false,
-                message: "Invalid user role"
-            })
+            return sendError(reply, 400, "Invalid user role");
         }
         const updatedUser = await UserModel.findByIdAndUpdate(userId, { $set: updateData }, { new: true, runValidators: true })
-        return reply.status(200).send({
-            status: true,
-            message: "User updated successfully",
-            data: updatedUser
-        })
+        return sendSuccess(reply, 200, "User updated successfully", updatedUser);
     } catch (error) {
-        return reply.status(500).send({
-            status: false,
-            message: "An error occurred",
-            error: error
-        })
+        return sendError(reply, 500, "An error occurred", error);
     }
 }

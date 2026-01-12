@@ -1,5 +1,7 @@
-import { Customer, DeliveryPartner } from "../../models.js";
+import { Customer, DeliveryPartner } from "../../models/index.js";
 import jwt from "jsonwebtoken";
+import { sendSuccess, sendError } from "../../utils/index.js";
+
 // Generate tokens
 const generateTokens = (user) => {
   const accessToken = jwt.sign(
@@ -28,17 +30,13 @@ export const loginCustomer = async (req, reply) => {
       await customer.save();
     }
     const { accessToken, refreshToken } = generateTokens(customer);
-    reply.status(200).send({
-      message: "Login Success",
+    return sendSuccess(reply, 200, "Login Success", {
       accessToken,
       refreshToken,
-      data: customer,
-      status: true,
+      customer,
     });
   } catch (error) {
-    reply
-      .status(500)
-      .send({ message: "An Error Occurred", error: error, status: false });
+    return sendError(reply, 500, "An Error Occurred", error);
   }
 };
 
@@ -48,30 +46,20 @@ export const loginDeliveryPartner = async (req, reply) => {
     // db query to find the delivery partner
     const deliveryPartner = await DeliveryPartner.findOne({ email });
     if (!deliveryPartner) {
-      return reply.status(404).send({
-        message: "Delivery Partner not found",
-        status: false,
-      });
+      return sendError(reply, 404, "Delivery Partner not found");
     }
     const isMatch = password === deliveryPartner.password;
     if (!isMatch) {
-      return reply.status(401).send({
-        status: false,
-        message: "Invalid Credentials",
-      });
+      return sendError(reply, 401, "Invalid Credentials");
     }
     const { accessToken, refreshToken } = generateTokens(deliveryPartner);
-    return reply.status(200).send({
-      status: true,
-      message: "Login Successfull",
+    return sendSuccess(reply, 200, "Login Successfull", {
       accessToken,
       refreshToken,
-      data: deliveryPartner,
+      deliveryPartner,
     });
   } catch (error) {
-    reply
-      .status(500)
-      .send({ message: "An Error Occurred", error: error, status: false });
+    return sendError(reply, 500, "An Error Occurred", error);
   }
 };
 
@@ -79,10 +67,7 @@ export const refreshToken = async (req, reply) => {
   try {
     const { refreshToken } = req.body;
     if (!refreshToken) {
-      return reply.status(401).send({
-        status: false,
-        message: "Refresh Token is missing",
-      });
+      return sendError(reply, 401, "Refresh Token is missing");
     }
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
     let user;
@@ -91,29 +76,19 @@ export const refreshToken = async (req, reply) => {
     } else if (decoded.role === "DeliveryPartner") {
       user = await DeliveryPartner.findById(decoded.userId);
     } else {
-      return reply.status(403).send({
-        status: false,
-        message: "Invalid Role",
-      });
+      return sendError(reply, 403, "Invalid Role");
     }
     if (!user) {
-      return reply.status(404).send({
-        status: false,
-        message: "User not found",
-      });
+      return sendError(reply, 404, "User not found");
     }
     const { accessToken, refreshToken: newRefreshToken } = generateTokens(user);
-    return reply.status(200).send({
-      status: true,
-      message: "Refresh Token Successfull",
+    return sendSuccess(reply, 200, "Refresh Token Successfull", {
       accessToken,
       refreshToken: newRefreshToken,
-      data: user,
+      user,
     });
   } catch (error) {
-    reply
-      .status(500)
-      .send({ message: "An Error Occurred", error: error, status: false });
+    return sendError(reply, 500, "An Error Occurred", error);
   }
 };
 
@@ -126,27 +101,13 @@ export const fetchUser = async (req, reply) => {
     } else if (role === "DeliveryPartner") {
       user = await DeliveryPartner.findById(userId);
     } else {
-      return reply.status(403).send({
-        status: false,
-        message: "Invalid Role",
-      });
+      return sendError(reply, 403, "Invalid Role");
     }
     if (!user) {
-      return reply.status(404).send({
-        status: false,
-        message: "User not found",
-      });
+      return sendError(reply, 404, "User not found");
     }
-    return reply.status(200).send({
-      status: true,
-      message: "User found",
-      data: user,
-    });
+    return sendSuccess(reply, 200, "User found", user);
   } catch (error) {
-    return reply.status(500).send({
-      message: "An Error Occurred",
-      error: error,
-      status: false,
-    });
+    return sendError(reply, 500, "An Error Occurred", error);
   }
 };

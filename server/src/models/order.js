@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import Counter from "./counter";
+import Counter from "./counter.js";
+import { ORDER_STATUS } from "../utils/index.js";
 
 const orderSchema = new mongoose.Schema({
   orderId: {
@@ -79,7 +80,7 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["available", "confirmed", "delivered", "cancelled", "arriving"],
+    enum: ORDER_STATUS,
     default: "available",
   },
   totalPrice: {
