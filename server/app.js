@@ -4,6 +4,7 @@ import fastify from "fastify";
 import connectDB from "./src/config/connectDB.js";
 import fastifySocketIO from "fastify-socket.io";
 import { registerRoutes } from "./src/routes/index.js";
+import { buildAdminRouter } from "./src/config/setup.js";
 const startServer = async () => {
   try {
     await connectDB(MONGO_URI);
@@ -19,6 +20,7 @@ const startServer = async () => {
     });
 
     await registerRoutes(app);
+    await buildAdminRouter(app);
     app.listen({ port: PORT, host: "0.0.0.0" }, (err, address) => {
       if (err) throw err;
       console.log(`Server listening at ${address} : ${PORT}`);
